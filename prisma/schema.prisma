@@ -1,0 +1,140 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id          String   @id @default(cuid())
+  nip         String   @unique
+  email       String   @unique
+  password    String
+  fullName    String
+  role        UserRole @default(PEKERJA)
+  jobPosition String?
+  department  String?
+
+  talentPoolEntries TalentPool[]
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([role])
+  @@map("users")
+}
+
+enum UserRole {
+  SUPERADMIN
+  ADMIN
+  MANAJEMEN
+  MANAGER
+  PEKERJA
+  ADMIN_STRUKTUR
+  ADMIN_ANAK
+}
+
+model TalentPool {
+  id            String        @id @default(cuid())
+  user          User          @relation(fields: [userId], references: [id])
+  userId        String
+
+  category      TalentCategory @default(POTENTIAL)
+  overallScore  Float?
+  readiness     ReadinessLevel @default(SIAP_1_2_TAHUN)
+  notes         String?        @db.Text
+
+  reviewedBy    String?
+  reviewedAt    DateTime?
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@unique([userId])
+  @@index([category])
+  @@index([readiness])
+  @@map("talent_pool")
+}
+
+enum TalentCategory {
+  HIGH_POTENTIAL
+  HIGH_PERFORMER
+  POTENTIAL
+  CORE
+  UNDER_REVIEW
+}
+
+enum ReadinessLevel {
+  SIAP_SEKARANG
+  SIAP_1_2_TAHUN
+  SIAP_3_5_TAHUN
+}
+
+model SuccessionPosition {
+  id                String   @id @default(cuid())
+  careerPositionId  Int?     @unique
+  positionCode      String   @unique
+  positionName      String
+  jobFamily         String?
+  unit              String?
+  grade             String?
+
+  isVacant          Boolean  @default(false)
+  isCritical        Boolean  @default(false)
+  criticalityReason String?
+  tugasPokokFungsi  String?  @db.Text
+
+  incumbentNip      String?
+  incumbentName     String?
+  retirementDate    DateTime?
+
+  candidates        SuccessionCandidate[]
+
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@index([isVacant])
+  @@index([isCritical])
+  @@map("succession_positions")
+}
+
+model SuccessionCandidate {
+  id              String   @id @default(cuid())
+
+  position        SuccessionPosition @relation(fields: [positionId], references: [id])
+  positionId      String
+
+  candidateNip             String
+  candidateName            String
+  candidateCurrentPosition String?
+
+  readiness       ReadinessLevel  @default(SIAP_1_2_TAHUN)
+  inComparison    Boolean         @default(false)
+  status          CandidateStatus @default(PROPOSED)
+  jobFitScore     Float?
+  gapSummary      Json?
+  rank            Int?
+
+  proposedBy      String?
+  proposedAt      DateTime @default(now())
+  decidedBy       String?
+  decidedAt       DateTime?
+
+  notes           String?  @db.Text
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@unique([positionId, candidateNip])
+  @@index([status])
+  @@map("succession_candidates")
+}
+
+enum CandidateStatus {
+  PROPOSED
+  UNDER_REVIEW
+  APPROVED
+  REJECTED
+  APPOINTED
+}
