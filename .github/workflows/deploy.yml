@@ -1,0 +1,27 @@
+name: Deploy ITMS to Server
+on:
+  push:
+    branches:
+      - main
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: ${{ secrets.SSH_PORT }}
+          script: |
+            set -e
+            git config --global --add safe.directory /var/www/itms
+            cd /var/www/itms
+            git pull origin main
+            npm ci
+            npx prisma generate
+            npm run build
+            pm2 restart itms --update-env
