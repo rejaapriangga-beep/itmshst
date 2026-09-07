@@ -11,6 +11,7 @@ import {
   ChevronDown,
   ChevronLeft,
   ChevronRight,
+  Gauge,
 } from 'lucide-react'
 
 type SubItem = {
@@ -31,6 +32,11 @@ const NAV_ITEMS: NavItem[] = [
     label: 'Dashboard',
     href: '/',
     icon: LayoutGrid,
+  },
+  {
+    label: 'Talent Intelligence',
+    href: '/talent-intelligence',
+    icon: Gauge,
   },
   {
     label: 'Talent Pool',
